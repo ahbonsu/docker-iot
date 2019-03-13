@@ -56,9 +56,14 @@ RUN groupadd --system -g ${USER_GROUP_ID} ${USER_GROUP} && \
     useradd --system --create-home --home-dir ${USER_HOME} --no-log-init -g ${USER_GROUP_ID} -u ${USER_ID} ${USER}
 
 # copy jdk, wso2 product distribution to user's home directory and copy mysql connector jar to product distribution
-COPY --chown=wso2carbon:wso2 ${FILES}/${JDK_DIST} ${JAVA_HOME}
-COPY --chown=wso2carbon:wso2 ${FILES}/${WSO2_SERVER_DIST} ${WSO2_SERVER_HOME}
-COPY --chown=wso2carbon:wso2 ${FILES}/mysql-connector-java-*-bin.jar ${WSO2_SERVER_HOME}/lib
+COPY ${FILES}/${JDK_DIST} ${JAVA_HOME}
+RUN chown -R wso2carbon:wso2 ${JAVA_HOME}
+
+COPY ${FILES}/${WSO2_SERVER_DIST} ${WSO2_SERVER_HOME}
+RUN chown -R wso2carbon:wso2 ${WSO2_SERVER_HOME}
+
+COPY ${FILES}/mysql-connector-java-*-bin.jar ${WSO2_SERVER_HOME}/lib
+RUN chown -R wso2carbon:wso2 ${WSO2_SERVER_HOME}/lib
 
 # set the user and work directory
 USER ${USER}
