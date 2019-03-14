@@ -17,25 +17,23 @@
 # ------------------------------------------------------------------------
 
 # set to latest Ubuntu LTS
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 MAINTAINER WSO2 Docker Maintainers "dev@wso2.org"
 
 # set user configurations
 ARG USER=wso2carbon
 ARG USER_ID=802
-ARG USER_GROUP=wso2
-ARG USER_GROUP_ID=802
-ARG USER_HOME=/home/${USER}
 # set dependant files directory
 ARG FILES=./files
 # set wso2 product configurations
+ARG WSO2_HOME=/wso2
 ARG WSO2_SERVER=wso2iot
 ARG WSO2_SERVER_VERSION=3.3.0
 ARG WSO2_SERVER_DIST=${WSO2_SERVER}-${WSO2_SERVER_VERSION}
-ARG WSO2_SERVER_HOME=${USER_HOME}/${WSO2_SERVER_DIST}
+ARG WSO2_SERVER_HOME=${WSO2_HOME}/${WSO2_SERVER_DIST}
 # set jdk configurations
 ARG JDK_DIST=jdk1.8.0*
-ARG JAVA_HOME=${USER_HOME}/java
+ARG JAVA_HOME=${WSO2_HOME}/java
 
 # install required packages
 RUN apt-get update && \
@@ -51,26 +49,19 @@ RUN apt-get update && \
     Read more about EULA 2.0 (https://wso2.com/licenses/wso2-update/2.0).\n"\
     > /etc/motd
 
-# create a user group and a user
-RUN groupadd --system -g ${USER_GROUP_ID} ${USER_GROUP} && \
-    useradd --system --create-home --home-dir ${USER_HOME} --no-log-init -g ${USER_GROUP_ID} -u ${USER_ID} ${USER}
+# create a user
+RUN useradd --system --no-log-init -u ${USER_ID} ${USER}
 
-# copy jdk, wso2 product distribution to user's home directory and copy mysql connector jar to product distribution
+# copy jdk, wso2 product distribution to WSO2 home directory and copy mysql connector jar to product distribution
 COPY ${FILES}/${JDK_DIST} ${JAVA_HOME}
-RUN chown -R wso2carbon:wso2 ${JAVA_HOME}
-
 COPY ${FILES}/${WSO2_SERVER_DIST} ${WSO2_SERVER_HOME}
-RUN chown -R wso2carbon:wso2 ${WSO2_SERVER_HOME}
-
 COPY ${FILES}/mysql-connector-java-*-bin.jar ${WSO2_SERVER_HOME}/lib
-RUN chown -R wso2carbon:wso2 ${WSO2_SERVER_HOME}/lib
 
-# set the user and work directory
-USER ${USER}
-WORKDIR ${USER_HOME}
+RUN chown -R ${USER}:0 ${WSO2_HOME} && \
+    chmod -R g=u ${WSO2_HOME}
 
 # set environment variables
 ENV JAVA_HOME=${JAVA_HOME} \
     PATH=$JAVA_HOME/bin:$PATH \
     WSO2_SERVER_HOME=${WSO2_SERVER_HOME} \
-    WORKING_DIRECTORY=${USER_HOME}
+    WORKING_DIRECTORY=${WSO2_HOME}

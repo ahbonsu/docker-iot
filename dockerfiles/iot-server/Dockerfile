@@ -20,18 +20,10 @@
 # set to product base image
 FROM wso2iot-base:3.3.0
 
-# change user to execute chown (wso2carbon was used in base image)
-USER root
-
-# copy entrypoint bash script to user home
-COPY init.sh ${WORKING_DIRECTORY}/
-RUN chown -R wso2carbon:wso2 ${WORKING_DIRECTORY}/init.sh 
-
-# switch back
-USER wso2carbon
-
 # expose IoT Server ports
 EXPOSE 8280 8243 9443
 
-ENTRYPOINT ["/home/wso2carbon/init.sh"]
+RUN chmod g=u /etc/passwd
 
+ENTRYPOINT ["/wso2/wso2iot-3.3.0/bin/iot-server.sh"]
+USER 802
